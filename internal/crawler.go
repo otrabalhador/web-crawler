@@ -1,29 +1,33 @@
 package internal
 
+import netUrl "net/url"
+
+type URL netUrl.URL
+
 type Page struct {
-	Url     string
+	Url     URL
 	Content string
 }
 
 type Extractor interface {
-	Extract(page Page) []string
+	Extract(page Page) []URL
 }
 
 type Repository interface {
 	Save(page Page) error
-	IsAlreadySaved(url string) bool
-	GetPage(url string) Page
+	IsAlreadySaved(url URL) bool
+	GetPage(url URL) Page
 }
 
 type WebClient interface {
-	GetPageContent(url string) (Page, error)
+	GetPageContent(url URL) (Page, error)
 }
 
 type Crawler struct {
 	webClient     WebClient
 	repository    Repository
 	extractor     Extractor
-	travelledUrls map[string]bool
+	travelledUrls map[URL]bool
 }
 
 func NewCrawler(webClient WebClient, repository Repository, extractor Extractor) *Crawler {
@@ -31,11 +35,11 @@ func NewCrawler(webClient WebClient, repository Repository, extractor Extractor)
 		webClient:     webClient,
 		repository:    repository,
 		extractor:     extractor,
-		travelledUrls: map[string]bool{},
+		travelledUrls: map[URL]bool{},
 	}
 }
 
-func (c *Crawler) Execute(url string) {
+func (c *Crawler) Execute(url URL) {
 	c.travelledUrls[url] = true
 
 	if c.repository.IsAlreadySaved(url) {

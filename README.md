@@ -64,7 +64,7 @@ TODO
 - [x] Add recursion
 - [x] Fix circular dependency problem
 - [x] Implement way of resuming work
-- [ ] Persist using hierarchy
+- [X] Persist using hierarchy
 - [ ] Deal with errors
 - [ ] Add logging
 - [ ] Create CLI using dummy dependencies of crawler

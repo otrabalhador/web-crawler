@@ -2,30 +2,36 @@ package internal
 
 import (
 	"github.com/stretchr/testify/assert"
+	netUrl "net/url"
 	"testing"
 )
+
+func parseUrl(textUrl string) URL {
+	rootUrl, _ := netUrl.Parse(textUrl)
+	return URL(*rootUrl)
+}
 
 func TestShouldGetPageContent(t *testing.T) {
 	page := Page{
 		Content: `Hello crawler`,
-		Url:     "https://foo.com",
+		Url:     parseUrl("https://foo.com"),
 	}
-	pageMap := map[string]Page{page.Url: page}
+	pageMap := map[URL]Page{page.Url: page}
 
 	webClient := NewFakeWebClient(pageMap)
 	crawler := NewCrawler(webClient, NewFakeRepository(), NewFakeExtractor(nil))
 
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, []string{page.Url}, webClient.GetPageContentCalls)
+	assert.Equal(t, []URL{page.Url}, webClient.GetPageContentCalls)
 }
 
 func TestShouldSavePage(t *testing.T) {
 	page := Page{
 		Content: `Hello crawler`,
-		Url:     "https://foo.com",
+		Url:     parseUrl("https://foo.com"),
 	}
-	pageMap := map[string]Page{page.Url: page}
+	pageMap := map[URL]Page{page.Url: page}
 
 	repository := NewFakeRepository()
 	crawler := NewCrawler(NewFakeWebClient(pageMap), repository, NewFakeExtractor(nil))
@@ -37,9 +43,9 @@ func TestShouldSavePage(t *testing.T) {
 func TestShouldExtractUrls(t *testing.T) {
 	page := Page{
 		Content: `Hello crawler`,
-		Url:     "https://foo.com",
+		Url:     parseUrl("https://foo.com"),
 	}
-	pageMap := map[string]Page{page.Url: page}
+	pageMap := map[URL]Page{page.Url: page}
 
 	extractor := NewFakeExtractor(nil)
 	crawler := NewCrawler(NewFakeWebClient(pageMap), NewFakeRepository(), extractor)
@@ -49,9 +55,9 @@ func TestShouldExtractUrls(t *testing.T) {
 }
 
 func TestShouldCrawlAgainForEachChildUrl(t *testing.T) {
-	rootPageUrl := "https://foo.com"
-	childPageUrl1 := "https://foo.com/bar"
-	childPageUrl2 := "https://foo.com/baz"
+	rootPageUrl := parseUrl("https://foo.com")
+	childPageUrl1 := parseUrl("https://foo.com/bar")
+	childPageUrl2 := parseUrl("https://foo.com/baz")
 	pages := []Page{
 		{
 			Content: `Hello crawler`,
@@ -67,13 +73,13 @@ func TestShouldCrawlAgainForEachChildUrl(t *testing.T) {
 		},
 	}
 
-	pageMap := map[string]Page{
+	pageMap := map[URL]Page{
 		rootPageUrl:   pages[0],
 		childPageUrl1: pages[1],
 		childPageUrl2: pages[2],
 	}
 
-	extractionMap := map[Page][]string{
+	extractionMap := map[Page][]URL{
 		pages[0]: {
 			childPageUrl1,
 			childPageUrl2,
@@ -87,26 +93,26 @@ func TestShouldCrawlAgainForEachChildUrl(t *testing.T) {
 
 	crawler.Execute(rootPageUrl)
 
-	expectedCalledUrls := []string{rootPageUrl, childPageUrl1, childPageUrl2}
+	expectedCalledUrls := []URL{rootPageUrl, childPageUrl1, childPageUrl2}
 	assert.Equal(t, expectedCalledUrls, webClient.GetPageContentCalls)
 	assert.Equal(t, pages, repository.SaveCalls)
 	assert.Equal(t, pages, extractor.ExtractCalls)
 }
 
 func TestShouldIgnoreAlreadyExtractedPages(t *testing.T) {
-	url := "https://foo.com"
+	url := parseUrl("https://foo.com")
 	page := Page{
 		Content: `Hello crawler. I have a circular dependency'`,
 		Url:     url,
 	}
 
-	extractionMap := map[Page][]string{
+	extractionMap := map[Page][]URL{
 		page: {url},
 	}
 
 	extractor := NewFakeExtractor(extractionMap)
 
-	pageMap := map[string]Page{page.Url: page}
+	pageMap := map[URL]Page{page.Url: page}
 
 	repository := NewFakeRepository()
 	webClient := NewFakeWebClient(pageMap)
@@ -122,29 +128,29 @@ func TestShouldIgnoreAlreadyExtractedPages(t *testing.T) {
 func TestShouldResumePreviousWorkAndCrawlOnlyLeafPages(t *testing.T) {
 	crawledPage1 := Page{
 		Content: `I am root, but i was already crawled`,
-		Url:     "https://foo.com",
+		Url:     parseUrl("https://foo.com"),
 	}
 	crawledPage2 := Page{
 		Content: `I am bar, but i was already crawled`,
-		Url:     "https://foo.com/bar",
+		Url:     parseUrl("https://foo.com/bar"),
 	}
 	leafPage1 := Page{
 		Content: `I am baz, and I haven't been yet crawled`,
-		Url:     "https://foo.com/baz",
+		Url:     parseUrl("https://foo.com/baz"),
 	}
 	leafPage2 := Page{
 		Content: `I am a qux, and I haven't been yet crawled`,
-		Url:     "https://foo.com/qux",
+		Url:     parseUrl("https://foo.com/qux"),
 	}
 
-	pageMap := map[string]Page{
+	pageMap := map[URL]Page{
 		crawledPage1.Url: crawledPage1,
 		crawledPage2.Url: crawledPage2,
 		leafPage1.Url:    leafPage1,
 		leafPage2.Url:    leafPage2,
 	}
 
-	extractionMap := map[Page][]string{
+	extractionMap := map[Page][]URL{
 		crawledPage1: {crawledPage1.Url, crawledPage2.Url, leafPage1.Url},
 		crawledPage2: {crawledPage1.Url, leafPage2.Url},
 		leafPage1:    {crawledPage1.Url},
@@ -161,31 +167,31 @@ func TestShouldResumePreviousWorkAndCrawlOnlyLeafPages(t *testing.T) {
 
 	crawler.Execute(crawledPage1.Url)
 
-	assert.Equal(t, []string{leafPage2.Url, leafPage1.Url}, webClient.GetPageContentCalls)
+	assert.Equal(t, []URL{leafPage2.Url, leafPage1.Url}, webClient.GetPageContentCalls)
 	assert.Equal(t, []Page{leafPage2, leafPage1}, repository.SaveCalls)
 }
 
 // FakeWebClient
 
 type FakeWebClient struct {
-	Pages               map[string]Page
-	GetPageContentCalls []string
+	Pages               map[URL]Page
+	GetPageContentCalls []URL
 	CallCount           int
 }
 
-func NewFakeWebClient(pageMap map[string]Page) *FakeWebClient {
+func NewFakeWebClient(pageMap map[URL]Page) *FakeWebClient {
 	return &FakeWebClient{
 		Pages:               pageMap,
-		GetPageContentCalls: []string{},
+		GetPageContentCalls: []URL{},
 		CallCount:           0,
 	}
 }
 
-func (f *FakeWebClient) SetupPage(url string, page Page) {
+func (f *FakeWebClient) SetupPage(url URL, page Page) {
 	f.Pages[url] = page
 }
 
-func (f *FakeWebClient) GetPageContent(url string) (Page, error) {
+func (f *FakeWebClient) GetPageContent(url URL) (Page, error) {
 	f.CallCount++
 	f.GetPageContentCalls = append(f.GetPageContentCalls, url)
 
@@ -224,7 +230,7 @@ func (f *FakeRepository) Save(page Page) error {
 	return nil
 }
 
-func (f *FakeRepository) IsAlreadySaved(url string) bool {
+func (f *FakeRepository) IsAlreadySaved(url URL) bool {
 	for _, page := range f.SavedPages {
 		if url == page.Url {
 			return true
@@ -234,7 +240,7 @@ func (f *FakeRepository) IsAlreadySaved(url string) bool {
 	return false
 }
 
-func (f *FakeRepository) GetPage(url string) Page {
+func (f *FakeRepository) GetPage(url URL) Page {
 	for _, page := range f.SavedPages {
 		if url == page.Url {
 			return page
@@ -248,10 +254,10 @@ func (f *FakeRepository) GetPage(url string) Page {
 type FakeExtractor struct {
 	CallCount    int
 	ExtractCalls []Page
-	UrlMap       map[Page][]string
+	UrlMap       map[Page][]URL
 }
 
-func NewFakeExtractor(extractedUrlMap map[Page][]string) *FakeExtractor {
+func NewFakeExtractor(extractedUrlMap map[Page][]URL) *FakeExtractor {
 	return &FakeExtractor{
 		UrlMap:       extractedUrlMap,
 		CallCount:    0,
@@ -259,7 +265,7 @@ func NewFakeExtractor(extractedUrlMap map[Page][]string) *FakeExtractor {
 	}
 }
 
-func (f *FakeExtractor) Extract(page Page) []string {
+func (f *FakeExtractor) Extract(page Page) []URL {
 	f.CallCount++
 	f.ExtractCalls = append(f.ExtractCalls, page)
 
