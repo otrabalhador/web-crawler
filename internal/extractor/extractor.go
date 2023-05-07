@@ -30,7 +30,12 @@ func (e Extractor) Extract(page internal.Page) []*netUrl.URL {
 				for _, attr := range token.Attr {
 					if attr.Key == "href" {
 						url := parseUrl(attr.Val)
-						if url.Host == page.Url.Host {
+
+						if url.Host == "" { // If it is relative path
+							url.Host = page.Url.Host
+							url.Scheme = page.Url.Scheme
+							urls = append(urls, url)
+						} else if url.Host == page.Url.Host {
 							urls = append(urls, url)
 						}
 					}

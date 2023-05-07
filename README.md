@@ -10,11 +10,12 @@ It is a command line tool that will accept a url and download its content to a d
 
 - `go build ./cmd/web-crawler && .\web-crawler.exe --root=<ROOT_URL> --destination=<DESTINATION_FOLDER>`
 
-- Example: `go build ./cmd/web-crawler && .\web-crawler.exe --root=http://help.websiteos.com/websiteos/example_of_a_simple_html_page.htm --destination=`
+- Example: `go build ./cmd/web-crawler && .\web-crawler.exe --root=https://martinfowler.com/ --destination=`
 
 ## How this repository is organized?
 
-TODO
+- There is a cmd and internal folder
+- The CLI is located at the cmd and the crawler components are located at internal
 
 ## Application
 
@@ -46,16 +47,6 @@ TODO
 
 - Extract urls given a page page
 
-### Common issues
-
-#### Circular reference
-
-TODO
-
-#### Race condition on persistence
-
-TODO
-
 
 ## Development ROADMAP
 
@@ -69,8 +60,8 @@ TODO
 - [X] Persist using hierarchy
 - [x] Create CLI using dummy dependencies of crawler
 - [x] Add logging
-- [ ] Implement WebClient
-- [ ] Implement Repository
-- [ ] Implement Extractor
+- [x] Implement WebClient
+- [x] Implement Repository
+- [x] Implement Extractor
 - [ ] Deal with errors
 - [ ] Add concurrency

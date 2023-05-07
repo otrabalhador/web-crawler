@@ -28,7 +28,7 @@ type Crawler struct {
 	webClient     WebClient
 	repository    Repository
 	extractor     Extractor
-	travelledUrls map[*netUrl.URL]bool
+	travelledUrls map[string]bool
 }
 
 func NewCrawler(webClient WebClient, repository Repository, extractor Extractor) *Crawler {
@@ -36,20 +36,20 @@ func NewCrawler(webClient WebClient, repository Repository, extractor Extractor)
 		webClient:     webClient,
 		repository:    repository,
 		extractor:     extractor,
-		travelledUrls: map[*netUrl.URL]bool{},
+		travelledUrls: map[string]bool{},
 	}
 }
 
 func (c *Crawler) Execute(url *netUrl.URL) {
 	log.Printf("Crawling url %s", url)
-	c.travelledUrls[url] = true
+	c.travelledUrls[url.String()] = true
 
 	if c.repository.IsAlreadySaved(url) {
 		log.Printf("Url %s is already saved", url)
 		page := c.repository.GetPage(url)
 		urls := c.extractor.Extract(page)
 		for _, pageUrl := range urls {
-			if _, ok := c.travelledUrls[pageUrl]; ok {
+			if _, ok := c.travelledUrls[pageUrl.String()]; ok {
 				continue
 			}
 
@@ -65,7 +65,7 @@ func (c *Crawler) Execute(url *netUrl.URL) {
 
 	urls := c.extractor.Extract(page)
 	for _, pageUrl := range urls {
-		if _, ok := c.travelledUrls[pageUrl]; ok {
+		if _, ok := c.travelledUrls[pageUrl.String()]; ok {
 			continue
 		}
 
