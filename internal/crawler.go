@@ -1,19 +1,32 @@
 package internal
 
+type Page struct {
+	Url     string
+	Content string
+}
+
+type Repository interface {
+	Save(page Page) error
+}
+
 type WebClient interface {
-	GetPageContent(url string) error
+	GetPageContent(url string) (Page, error)
 }
 
 type Crawler struct {
-	webClient WebClient
+	webClient  WebClient
+	repository Repository
 }
 
-func NewCrawler(webClient WebClient) *Crawler {
+func NewCrawler(webClient WebClient, repository Repository) *Crawler {
 	return &Crawler{
-		webClient: webClient,
+		webClient:  webClient,
+		repository: repository,
 	}
 }
 
 func (c *Crawler) Execute(url string) {
-	c.webClient.GetPageContent(url)
+	page, _ := c.webClient.GetPageContent(url)
+
+	_ = c.repository.Save(page)
 }
