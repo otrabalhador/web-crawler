@@ -1,6 +1,9 @@
 package internal
 
-import netUrl "net/url"
+import (
+	"log"
+	netUrl "net/url"
+)
 
 type URL netUrl.URL
 
@@ -40,9 +43,11 @@ func NewCrawler(webClient WebClient, repository Repository, extractor Extractor)
 }
 
 func (c *Crawler) Execute(url URL) {
+	log.Printf("Crawling url (host: %v, path: %v)", url.Host, url.Path)
 	c.travelledUrls[url] = true
 
 	if c.repository.IsAlreadySaved(url) {
+		log.Printf("Url (host: %v, path: %v) is already saved", url.Host, url.Path)
 		page := c.repository.GetPage(url)
 		urls := c.extractor.Extract(page)
 		for _, pageUrl := range urls {
@@ -61,7 +66,6 @@ func (c *Crawler) Execute(url URL) {
 	_ = c.repository.Save(page)
 
 	urls := c.extractor.Extract(page)
-
 	for _, pageUrl := range urls {
 		if _, ok := c.travelledUrls[pageUrl]; ok {
 			continue
