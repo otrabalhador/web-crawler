@@ -13,12 +13,11 @@ func TestShouldGetPageContent(t *testing.T) {
 	pageMap := map[string]Page{page.Url: page}
 
 	webClient := NewFakeWebClient(pageMap)
-	crawler := NewCrawler(webClient, NewFakeRepository())
+	crawler := NewCrawler(webClient, NewFakeRepository(), NewFakeExtractor())
 
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, 1, webClient.CallCount)
-	assert.Equal(t, page.Url, webClient.CalledUrls[0])
+	assert.Equal(t, []string{page.Url}, webClient.CalledUrls)
 }
 
 func TestShouldSavePage(t *testing.T) {
@@ -28,15 +27,25 @@ func TestShouldSavePage(t *testing.T) {
 	}
 	pageMap := map[string]Page{page.Url: page}
 
-	webClient := NewFakeWebClient(pageMap)
-
 	repository := NewFakeRepository()
-
-	crawler := NewCrawler(webClient, repository)
+	crawler := NewCrawler(NewFakeWebClient(pageMap), repository, NewFakeExtractor())
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, 1, repository.CallCount)
-	assert.Equal(t, page, repository.SavedPages[0])
+	assert.Equal(t, []Page{page}, repository.SavedPages)
+}
+
+func TestShouldExtractUrls(t *testing.T) {
+	page := Page{
+		Content: `<html><body><h1>Hello crawler</h1></body></html>`,
+		Url:     "https://google.com",
+	}
+	pageMap := map[string]Page{page.Url: page}
+
+	extractor := NewFakeExtractor()
+	crawler := NewCrawler(NewFakeWebClient(pageMap), NewFakeRepository(), extractor)
+	crawler.Execute(page.Url)
+
+	assert.Equal(t, []Page{page}, extractor.ExtractedPages)
 }
 
 // FakeWebClient
@@ -84,6 +93,27 @@ func NewFakeRepository() *FakeRepository {
 func (f *FakeRepository) Save(page Page) error {
 	f.CallCount++
 	f.SavedPages = append(f.SavedPages, page)
+
+	return nil
+}
+
+// FakeExtractor
+
+type FakeExtractor struct {
+	CallCount      int
+	ExtractedPages []Page
+}
+
+func NewFakeExtractor() *FakeExtractor {
+	return &FakeExtractor{
+		CallCount:      0,
+		ExtractedPages: []Page{},
+	}
+}
+
+func (f *FakeExtractor) Extract(page Page) []string {
+	f.CallCount++
+	f.ExtractedPages = append(f.ExtractedPages, page)
 
 	return nil
 }
