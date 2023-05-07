@@ -17,7 +17,7 @@ func TestShouldGetPageContent(t *testing.T) {
 
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, []string{page.Url}, webClient.CalledUrls)
+	assert.Equal(t, []string{page.Url}, webClient.GetPageContentCalls)
 }
 
 func TestShouldSavePage(t *testing.T) {
@@ -31,7 +31,7 @@ func TestShouldSavePage(t *testing.T) {
 	crawler := NewCrawler(NewFakeWebClient(pageMap), repository, NewFakeExtractor(nil))
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, []Page{page}, repository.SavedPages)
+	assert.Equal(t, []Page{page}, repository.SaveCalls)
 }
 
 func TestShouldExtractUrls(t *testing.T) {
@@ -45,7 +45,7 @@ func TestShouldExtractUrls(t *testing.T) {
 	crawler := NewCrawler(NewFakeWebClient(pageMap), NewFakeRepository(), extractor)
 	crawler.Execute(page.Url)
 
-	assert.Equal(t, []Page{page}, extractor.ExtractedPages)
+	assert.Equal(t, []Page{page}, extractor.ExtractCalls)
 }
 
 func TestShouldCrawlAgainForEachChildUrl(t *testing.T) {
@@ -88,24 +88,51 @@ func TestShouldCrawlAgainForEachChildUrl(t *testing.T) {
 	crawler.Execute(rootPageUrl)
 
 	expectedCalledUrls := []string{rootPageUrl, childPageUrl1, childPageUrl2}
-	assert.Equal(t, expectedCalledUrls, webClient.CalledUrls)
-	assert.Equal(t, pages, repository.SavedPages)
-	assert.Equal(t, pages, extractor.ExtractedPages)
+	assert.Equal(t, expectedCalledUrls, webClient.GetPageContentCalls)
+	assert.Equal(t, pages, repository.SaveCalls)
+	assert.Equal(t, pages, extractor.ExtractCalls)
+}
+
+func TestShouldIgnoreAlreadyExtractedPages(t *testing.T) {
+	url := "https://foo.com"
+	page := Page{
+		Content: `Hello crawler. I have a circular dependency'`,
+		Url:     url,
+	}
+
+	extractionMap := map[Page][]string{
+		page: {url},
+	}
+
+	extractor := NewFakeExtractor(extractionMap)
+
+	pageMap := map[string]Page{page.Url: page}
+
+	repository := NewFakeRepository()
+	repository.SetSavedPage(page)
+	webClient := NewFakeWebClient(pageMap)
+	crawler := NewCrawler(webClient, repository, extractor)
+
+	crawler.Execute(url)
+
+	assert.Equal(t, 1, webClient.CallCount)
+	assert.Equal(t, 1, repository.CallCount)
+	assert.Equal(t, 1, extractor.CallCount)
 }
 
 // FakeWebClient
 
 type FakeWebClient struct {
-	Pages      map[string]Page
-	CalledUrls []string
-	CallCount  int
+	Pages               map[string]Page
+	GetPageContentCalls []string
+	CallCount           int
 }
 
 func NewFakeWebClient(pageMap map[string]Page) *FakeWebClient {
 	return &FakeWebClient{
-		Pages:      pageMap,
-		CalledUrls: []string{},
-		CallCount:  0,
+		Pages:               pageMap,
+		GetPageContentCalls: []string{},
+		CallCount:           0,
 	}
 }
 
@@ -115,7 +142,7 @@ func (f *FakeWebClient) SetupPage(url string, page Page) {
 
 func (f *FakeWebClient) GetPageContent(url string) (Page, error) {
 	f.CallCount++
-	f.CalledUrls = append(f.CalledUrls, url)
+	f.GetPageContentCalls = append(f.GetPageContentCalls, url)
 
 	page := f.Pages[url]
 	return page, nil
@@ -125,44 +152,60 @@ func (f *FakeWebClient) GetPageContent(url string) (Page, error) {
 
 type FakeRepository struct {
 	CallCount  int
+	SaveCalls  []Page
 	SavedPages []Page
 }
 
 func NewFakeRepository() *FakeRepository {
 	return &FakeRepository{
-		CallCount:  0,
-		SavedPages: []Page{},
+		CallCount: 0,
+		SaveCalls: []Page{},
 	}
+}
+
+func (f *FakeRepository) SetSavedPage(page Page) {
+	f.SavedPages = append(f.SavedPages, page)
 }
 
 func (f *FakeRepository) Save(page Page) error {
 	f.CallCount++
+	f.SaveCalls = append(f.SaveCalls, page)
 	f.SavedPages = append(f.SavedPages, page)
 
 	return nil
 }
 
+func (f *FakeRepository) IsAlreadySaved(url string) bool {
+	for _, page := range f.SavedPages {
+		if url == page.Url {
+			return true
+		}
+	}
+
+	return false
+}
+
 // FakeExtractor
 
 type FakeExtractor struct {
-	CallCount      int
-	ExtractedPages []Page
-	UrlMap         map[Page][]string
+	CallCount    int
+	ExtractCalls []Page
+	UrlMap       map[Page][]string
 }
 
 func NewFakeExtractor(extractedUrlMap map[Page][]string) *FakeExtractor {
 	return &FakeExtractor{
-		UrlMap:         extractedUrlMap,
-		CallCount:      0,
-		ExtractedPages: []Page{},
+		UrlMap:       extractedUrlMap,
+		CallCount:    0,
+		ExtractCalls: []Page{},
 	}
 }
 
 func (f *FakeExtractor) Extract(page Page) []string {
 	f.CallCount++
-	f.ExtractedPages = append(f.ExtractedPages, page)
+	f.ExtractCalls = append(f.ExtractCalls, page)
 
-	if f.ExtractedPages == nil {
+	if f.ExtractCalls == nil {
 		return nil
 	}
 

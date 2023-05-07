@@ -11,6 +11,7 @@ type Extractor interface {
 
 type Repository interface {
 	Save(page Page) error
+	IsAlreadySaved(url string) bool
 }
 
 type WebClient interface {
@@ -39,6 +40,10 @@ func (c *Crawler) Execute(url string) {
 	urls := c.extractor.Extract(page)
 
 	for _, pageUrl := range urls {
+		if c.repository.IsAlreadySaved(pageUrl) {
+			continue
+		}
+
 		c.Execute(pageUrl)
 	}
 }
