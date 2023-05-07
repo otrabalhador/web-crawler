@@ -1,3 +1,5 @@
+![Build](https://github.com/otrabalhador/web-crawler/actions/workflows/build.yaml/badge.svg)
+
 # Recursirve mirroring web crawler
 
 ## What does this do?
@@ -57,7 +59,7 @@ TODO
 
 - [x] Create a repo with README on github
 - [x] Plan initial structure of application
-- [ ] Add CI for build, unit test, linter
+- [x] Add CI for build, unit test, linter
 - [ ] Create orchestrator using interfaces of WebClient, Repository and Extractor
 - [ ] Add logging
 - [ ] Fix circular dependency problem
