@@ -8,9 +8,9 @@ It is a command line tool that will accept a url and download its content to a d
 
 ## How to use it?
 
-- `go build ./cmd/web-crawler && .\web-crawler.exe --root=<ROOT_URL> --destination=<DESTINATION_FOLDER>`
+- `go build ./cmd/web-crawler && ./web-crawler --root=<ROOT_URL> --destination=<DESTINATION_FOLDER>`
 
-- Example: `go build ./cmd/web-crawler && .\web-crawler.exe --root=https://martinfowler.com/ --destination=`
+- Example: `go build ./cmd/web-crawler && ./web-crawler --root=https://martinfowler.com/ --destination=`
 
 ## How this repository is organized?
 
