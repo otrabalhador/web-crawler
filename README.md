@@ -18,7 +18,7 @@ TODO
 
 ### Simplified flow
 
-- The orchestrator will receive the root url
+- The crawler (responsible for the flow) will receive the root url
 - Calls url
 - With the page of response
   - Save it to the destination directory
@@ -27,7 +27,7 @@ TODO
 
 ### Main components
 
-#### Orchestrator
+#### Crawler
 
 - Execute flow
 
@@ -60,10 +60,10 @@ TODO
 - [x] Create a repo with README on github
 - [x] Plan initial structure of application
 - [x] Add CI for build, unit test, linter
-- [ ] Create orchestrator using interfaces of WebClient, Repository and Extractor
+- [ ] Create crawler using interfaces of WebClient, Repository and Extractor
 - [ ] Add logging
 - [ ] Fix circular dependency problem
-- [ ] Create CLI using dummy dependencies of orchestrator
+- [ ] Create CLI using dummy dependencies of crawler
 - [ ] Implement WebClient
 - [ ] Implement Repository
 - [ ] Implement Extractor
