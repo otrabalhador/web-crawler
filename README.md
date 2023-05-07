@@ -67,10 +67,10 @@ TODO
 - [x] Fix circular dependency problem
 - [x] Implement way of resuming work
 - [X] Persist using hierarchy
-- [ ] Deal with errors
-- [ ] Add logging
-- [ ] Create CLI using dummy dependencies of crawler
+- [x] Create CLI using dummy dependencies of crawler
+- [x] Add logging
 - [ ] Implement WebClient
 - [ ] Implement Repository
 - [ ] Implement Extractor
+- [ ] Deal with errors
 - [ ] Add concurrency
