@@ -109,7 +109,6 @@ func TestShouldIgnoreAlreadyExtractedPages(t *testing.T) {
 	pageMap := map[string]Page{page.Url: page}
 
 	repository := NewFakeRepository()
-	repository.SetSavedPage(page)
 	webClient := NewFakeWebClient(pageMap)
 	crawler := NewCrawler(webClient, repository, extractor)
 
@@ -118,6 +117,52 @@ func TestShouldIgnoreAlreadyExtractedPages(t *testing.T) {
 	assert.Equal(t, 1, webClient.CallCount)
 	assert.Equal(t, 1, repository.CallCount)
 	assert.Equal(t, 1, extractor.CallCount)
+}
+
+func TestShouldResumePreviousWorkAndCrawlOnlyLeafPages(t *testing.T) {
+	crawledPage1 := Page{
+		Content: `I am root, but i was already crawled`,
+		Url:     "https://foo.com",
+	}
+	crawledPage2 := Page{
+		Content: `I am bar, but i was already crawled`,
+		Url:     "https://foo.com/bar",
+	}
+	leafPage1 := Page{
+		Content: `I am baz, and I haven't been yet crawled`,
+		Url:     "https://foo.com/baz",
+	}
+	leafPage2 := Page{
+		Content: `I am a qux, and I haven't been yet crawled`,
+		Url:     "https://foo.com/qux",
+	}
+
+	pageMap := map[string]Page{
+		crawledPage1.Url: crawledPage1,
+		crawledPage2.Url: crawledPage2,
+		leafPage1.Url:    leafPage1,
+		leafPage2.Url:    leafPage2,
+	}
+
+	extractionMap := map[Page][]string{
+		crawledPage1: {crawledPage1.Url, crawledPage2.Url, leafPage1.Url},
+		crawledPage2: {crawledPage1.Url, leafPage2.Url},
+		leafPage1:    {crawledPage1.Url},
+		leafPage2:    {crawledPage1.Url},
+	}
+
+	extractor := NewFakeExtractor(extractionMap)
+
+	repository := NewFakeRepository()
+	repository.SetSavedPages([]Page{crawledPage1, crawledPage2})
+
+	webClient := NewFakeWebClient(pageMap)
+	crawler := NewCrawler(webClient, repository, extractor)
+
+	crawler.Execute(crawledPage1.Url)
+
+	assert.Equal(t, []string{leafPage2.Url, leafPage1.Url}, webClient.GetPageContentCalls)
+	assert.Equal(t, []Page{leafPage2, leafPage1}, repository.SaveCalls)
 }
 
 // FakeWebClient
@@ -167,6 +212,10 @@ func (f *FakeRepository) SetSavedPage(page Page) {
 	f.SavedPages = append(f.SavedPages, page)
 }
 
+func (f *FakeRepository) SetSavedPages(pages []Page) {
+	f.SavedPages = append(f.SavedPages, pages...)
+}
+
 func (f *FakeRepository) Save(page Page) error {
 	f.CallCount++
 	f.SaveCalls = append(f.SaveCalls, page)
@@ -183,6 +232,15 @@ func (f *FakeRepository) IsAlreadySaved(url string) bool {
 	}
 
 	return false
+}
+
+func (f *FakeRepository) GetPage(url string) Page {
+	for _, page := range f.SavedPages {
+		if url == page.Url {
+			return page
+		}
+	}
+	return Page{}
 }
 
 // FakeExtractor
