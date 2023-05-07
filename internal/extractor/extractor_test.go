@@ -31,7 +31,7 @@ func TestShouldIgnoreUrlOfOtherHosts(t *testing.T) {
 		Content: `
 <html>
 <body>
-<a href=bar.foo>A link to bar.foo</a>
+<a href="https://bar.foo">A link to bar.foo</a>
 </body>
 </html>
 `,
