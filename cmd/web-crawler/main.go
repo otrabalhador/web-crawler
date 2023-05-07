@@ -3,7 +3,11 @@ package main
 import (
 	"github.com/spf13/cobra"
 	"log"
+	"net/url"
 	"web-crawler/internal"
+	"web-crawler/internal/extractor"
+	"web-crawler/internal/repository"
+	"web-crawler/internal/web_client"
 )
 
 var Root string
@@ -11,18 +15,27 @@ var Destination string
 var DummyMode bool
 
 func Run(_ *cobra.Command, _ []string) {
-	log.Printf("Received root url as %v and destination folder as %v", Root, Destination)
-
 	if DummyMode {
-		log.Printf("Executing on dummy mode")
 
 		rootUrl, webClient, repository, extractor := internal.GenerateDummyDependencies()
 		crawler := internal.NewCrawler(webClient, repository, extractor)
 
-		log.Printf("Starting")
+		log.Printf("Starting on dummy mode")
 		crawler.Execute(rootUrl)
 	} else {
-		log.Printf("Not ready for not-dummy mode")
+		rootUrl, err := url.Parse(Root)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c := web_client.NewWebClient()
+		r := repository.NewRepository(Destination)
+		e := extractor.NewExtractor()
+
+		crawler := internal.NewCrawler(c, r, e)
+
+		log.Printf("Starting crawler on %v with destinatino on %v", rootUrl.String(), Destination)
+		crawler.Execute(rootUrl)
 	}
 }
 

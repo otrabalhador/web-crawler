@@ -5,32 +5,30 @@ import (
 	netUrl "net/url"
 )
 
-type URL netUrl.URL
-
 type Page struct {
-	Url     URL
+	Url     *netUrl.URL
 	Content string
 }
 
 type Extractor interface {
-	Extract(page Page) []URL
+	Extract(page Page) []*netUrl.URL
 }
 
 type Repository interface {
 	Save(page Page) error
-	IsAlreadySaved(url URL) bool
-	GetPage(url URL) Page
+	IsAlreadySaved(url *netUrl.URL) bool
+	GetPage(url *netUrl.URL) Page
 }
 
 type WebClient interface {
-	GetPageContent(url URL) (Page, error)
+	GetPageContent(url *netUrl.URL) (Page, error)
 }
 
 type Crawler struct {
 	webClient     WebClient
 	repository    Repository
 	extractor     Extractor
-	travelledUrls map[URL]bool
+	travelledUrls map[string]bool
 }
 
 func NewCrawler(webClient WebClient, repository Repository, extractor Extractor) *Crawler {
@@ -38,20 +36,20 @@ func NewCrawler(webClient WebClient, repository Repository, extractor Extractor)
 		webClient:     webClient,
 		repository:    repository,
 		extractor:     extractor,
-		travelledUrls: map[URL]bool{},
+		travelledUrls: map[string]bool{},
 	}
 }
 
-func (c *Crawler) Execute(url URL) {
-	log.Printf("Crawling url (host: %v, path: %v)", url.Host, url.Path)
-	c.travelledUrls[url] = true
+func (c *Crawler) Execute(url *netUrl.URL) {
+	log.Printf("Crawling url %s", url)
+	c.travelledUrls[url.String()] = true
 
 	if c.repository.IsAlreadySaved(url) {
-		log.Printf("Url (host: %v, path: %v) is already saved", url.Host, url.Path)
+		log.Printf("Url %s is already saved", url)
 		page := c.repository.GetPage(url)
 		urls := c.extractor.Extract(page)
 		for _, pageUrl := range urls {
-			if _, ok := c.travelledUrls[pageUrl]; ok {
+			if _, ok := c.travelledUrls[pageUrl.String()]; ok {
 				continue
 			}
 
@@ -67,7 +65,7 @@ func (c *Crawler) Execute(url URL) {
 
 	urls := c.extractor.Extract(page)
 	for _, pageUrl := range urls {
-		if _, ok := c.travelledUrls[pageUrl]; ok {
+		if _, ok := c.travelledUrls[pageUrl.String()]; ok {
 			continue
 		}
 
