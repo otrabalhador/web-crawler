@@ -1,0 +1,27 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build-unit-test:
+    name: Build & Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set version
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.x
+
+      - name: Display version
+        run: go version
+
+      - name: Setup dependencies
+        run: go mod tidy
+
+      - name: Build web api
+        run: go build -v .
+
+      - name: Run unit tests
+        run: go test -v .
