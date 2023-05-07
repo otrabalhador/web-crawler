@@ -61,13 +61,14 @@ TODO
 - [x] Plan initial structure of application
 - [x] Add CI for build, unit test, linter
 - [x] Create crawler using interfaces of WebClient, Repository and Extractor
-- [ ] Add recursion
+- [x] Add recursion
+- [x] Fix circular dependency problem
+- [x] Implement way of resuming work
+- [ ] Persist using hierarchy
 - [ ] Deal with errors
 - [ ] Add logging
-- [ ] Fix circular dependency problem
 - [ ] Create CLI using dummy dependencies of crawler
 - [ ] Implement WebClient
 - [ ] Implement Repository
 - [ ] Implement Extractor
-- [ ] Implement way of resuming work
 - [ ] Add concurrency
