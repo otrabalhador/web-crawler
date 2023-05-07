@@ -60,7 +60,9 @@ TODO
 - [x] Create a repo with README on github
 - [x] Plan initial structure of application
 - [x] Add CI for build, unit test, linter
-- [ ] Create crawler using interfaces of WebClient, Repository and Extractor
+- [x] Create crawler using interfaces of WebClient, Repository and Extractor
+- [ ] Add recursion
+- [ ] Deal with errors
 - [ ] Add logging
 - [ ] Fix circular dependency problem
 - [ ] Create CLI using dummy dependencies of crawler
