@@ -14,11 +14,11 @@ func NewExtractor() *Extractor {
 	return &Extractor{}
 }
 
-func (e Extractor) Extract(page internal.Page) []internal.URL {
+func (e Extractor) Extract(page internal.Page) []*netUrl.URL {
 	stringReader := strings.NewReader(page.Content)
 	z := html.NewTokenizer(stringReader)
 
-	urls := []internal.URL{}
+	urls := []*netUrl.URL{}
 	for {
 		tt := z.Next()
 		switch tt {
@@ -40,8 +40,8 @@ func (e Extractor) Extract(page internal.Page) []internal.URL {
 	}
 }
 
-func parseUrl(textUrl string) internal.URL {
+func parseUrl(textUrl string) *netUrl.URL {
 	// TODO: Handle error
 	parsedUrl, _ := netUrl.Parse(textUrl)
-	return internal.URL(*parsedUrl)
+	return parsedUrl
 }

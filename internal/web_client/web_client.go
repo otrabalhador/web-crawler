@@ -30,7 +30,7 @@ func (w WebClient) GetPageContent(url *netUrl.URL) (internal.Page, error) {
 	}
 
 	return internal.Page{
-		Url:     internal.URL(*url),
+		Url:     url,
 		Content: string(data),
 	}, nil
 }

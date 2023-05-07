@@ -1,6 +1,7 @@
 package repository
 
 import (
+	netUrl "net/url"
 	"os"
 	"path"
 	"web-crawler/internal"
@@ -41,7 +42,7 @@ func (r *Repository) Save(page internal.Page) error {
 	return nil
 }
 
-func (r *Repository) IsAlreadySaved(url internal.URL) bool {
+func (r *Repository) IsAlreadySaved(url *netUrl.URL) bool {
 	filePath := path.Join(r.directory, url.Host, url.Path, "index.html")
 
 	// TODO: Handle error
@@ -54,7 +55,7 @@ func (r *Repository) IsAlreadySaved(url internal.URL) bool {
 	}
 }
 
-func (r *Repository) GetPage(url internal.URL) internal.Page {
+func (r *Repository) GetPage(url *netUrl.URL) internal.Page {
 	filePath := path.Join(r.directory, url.Host, url.Path, "index.html")
 
 	bytes, err := os.ReadFile(filePath)

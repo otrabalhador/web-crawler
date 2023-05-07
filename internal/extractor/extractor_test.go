@@ -2,13 +2,14 @@ package extractor
 
 import (
 	"github.com/stretchr/testify/assert"
+	netUrl "net/url"
 	"testing"
 	"web-crawler/internal"
 )
 
 func TestShouldReturnEmptyListIfNoUrlsAreFound(t *testing.T) {
 	page := internal.Page{
-		Url: internal.URL{
+		Url: &netUrl.URL{
 			Host: "foo.bar",
 			Path: "baz/qux",
 		},
@@ -23,7 +24,7 @@ func TestShouldReturnEmptyListIfNoUrlsAreFound(t *testing.T) {
 
 func TestShouldIgnoreUrlOfOtherHosts(t *testing.T) {
 	page := internal.Page{
-		Url: internal.URL{
+		Url: &netUrl.URL{
 			Host: "foo.bar",
 			Path: "baz/qux",
 		},
@@ -44,7 +45,7 @@ func TestShouldIgnoreUrlOfOtherHosts(t *testing.T) {
 
 func TestShouldReturnAllMatchedUrls(t *testing.T) {
 	page := internal.Page{
-		Url: internal.URL{
+		Url: &netUrl.URL{
 			Host: "foo.bar",
 			Path: "baz/qux",
 		},
@@ -62,7 +63,7 @@ func TestShouldReturnAllMatchedUrls(t *testing.T) {
 	extractor := NewExtractor()
 	urls := extractor.Extract(page)
 
-	expectedUrls := []internal.URL{
+	expectedUrls := []*netUrl.URL{
 		parseUrl("https://foo.bar"),
 		parseUrl("https://foo.bar/baz"),
 		parseUrl("https://foo.bar/baz/qux"),

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/stretchr/testify/assert"
+	netUrl "net/url"
 	"os"
 	"testing"
 	"web-crawler/internal"
@@ -11,7 +12,7 @@ func TestSaveOnRoot_ShouldCreateNewFolderWithIndexHtml(t *testing.T) {
 	rootDir := "foo.bar"
 
 	page := internal.Page{
-		Url: internal.URL{
+		Url: &netUrl.URL{
 			Host: rootDir,
 			Path: "baz/qux",
 		},
@@ -34,7 +35,7 @@ func TestSaveOnRoot_ShouldCreateNewFolderWithIndexHtml(t *testing.T) {
 
 func TestIsAlreadySave_ShouldReturnFalseWhenNone(t *testing.T) {
 	repository := NewRepository("")
-	isAlreadySaved := repository.IsAlreadySaved(internal.URL{
+	isAlreadySaved := repository.IsAlreadySaved(&netUrl.URL{
 		Host: "foo.bar",
 		Path: "baz/qux",
 	})
@@ -43,7 +44,7 @@ func TestIsAlreadySave_ShouldReturnFalseWhenNone(t *testing.T) {
 
 func TestIsAlreadySave_ShouldReturnTrueWhenHasAlreadySaved(t *testing.T) {
 	rootDir := "foo.bar"
-	url := internal.URL{Host: rootDir, Path: "baz/qux"}
+	url := &netUrl.URL{Host: rootDir, Path: "baz/qux"}
 	page := internal.Page{Url: url, Content: "foo"}
 
 	defer func(path string) {
@@ -59,7 +60,7 @@ func TestIsAlreadySave_ShouldReturnTrueWhenHasAlreadySaved(t *testing.T) {
 
 func TestGetPage_ShouldReturnEmptyPageWhenNotFound(t *testing.T) {
 	repository := NewRepository("")
-	page := repository.GetPage(internal.URL{
+	page := repository.GetPage(&netUrl.URL{
 		Host: "foo.bar",
 		Path: "baz/qux",
 	})
@@ -68,7 +69,7 @@ func TestGetPage_ShouldReturnEmptyPageWhenNotFound(t *testing.T) {
 
 func TestGetPage_ShouldReturnPageWhenFound(t *testing.T) {
 	rootDir := "foo.bar"
-	url := internal.URL{Host: rootDir, Path: "baz/qux"}
+	url := &netUrl.URL{Host: rootDir, Path: "baz/qux"}
 	page := internal.Page{Url: url, Content: "foo"}
 
 	defer func(path string) {
