@@ -2,14 +2,9 @@ package internal
 
 import (
 	"github.com/stretchr/testify/assert"
-	netUrl "net/url"
+	_ "net/url"
 	"testing"
 )
-
-func parseUrl(textUrl string) URL {
-	rootUrl, _ := netUrl.Parse(textUrl)
-	return URL(*rootUrl)
-}
 
 func TestShouldGetPageContent(t *testing.T) {
 	page := Page{
