@@ -36,5 +36,9 @@ func (c *Crawler) Execute(url string) {
 
 	_ = c.repository.Save(page)
 
-	_ = c.extractor.Extract(page)
+	urls := c.extractor.Extract(page)
+
+	for _, pageUrl := range urls {
+		c.Execute(pageUrl)
+	}
 }
