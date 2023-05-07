@@ -1,6 +1,6 @@
 ![Build](https://github.com/otrabalhador/web-crawler/actions/workflows/build.yaml/badge.svg)
 
-# Recursirve mirroring web crawler
+# Recursive mirroring web crawler
 
 ## What does this do?
 
@@ -8,7 +8,9 @@ It is a command line tool that will accept a url and download its content to a d
 
 ## How to use it?
 
-TODO
+- `go build ./cmd/web-crawler && .\web-crawler.exe --root=<ROOT_URL> --destination=<DESTINATION_FOLDER>`
+
+- Example: `go build ./cmd/web-crawler && .\web-crawler.exe --root=http://help.websiteos.com/websiteos/example_of_a_simple_html_page.htm --destination=`
 
 ## How this repository is organized?
 
@@ -65,10 +67,10 @@ TODO
 - [x] Fix circular dependency problem
 - [x] Implement way of resuming work
 - [X] Persist using hierarchy
-- [ ] Deal with errors
-- [ ] Add logging
-- [ ] Create CLI using dummy dependencies of crawler
+- [x] Create CLI using dummy dependencies of crawler
+- [x] Add logging
 - [ ] Implement WebClient
 - [ ] Implement Repository
 - [ ] Implement Extractor
+- [ ] Deal with errors
 - [ ] Add concurrency
